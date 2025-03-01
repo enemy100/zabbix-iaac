@@ -152,7 +152,6 @@ When working with this repository, please follow these security practices:
 3. **Use Ansible Vault**: Encrypt sensitive variables using Ansible Vault.
 4. **Add sensitive files to .gitignore**: Make sure sensitive files are listed in the `.gitignore` file.
 
-
 ## Author
 
-Robson
+enemy100
