@@ -1,0 +1,81 @@
+---
+# Instalação do Zabbix Agent para Windows e Linux
+
+- name: Detectar se o host é Windows
+  set_fact:
+    is_windows: "{{ ansible_os_family == 'Windows' }}"
+
+- name: Instalar o Zabbix Agent no Windows
+  when: is_windows
+  block:
+    - name: Baixar o instalador do Zabbix Agent
+      win_get_url:
+        url: "http://10.196.182.20/repo/zabbix/zabbix-agent/win/zabbix_agent-7.2.2-windows-amd64-openssl.msi"
+        dest: "C:\\zabbix_agent72.msi"
+
+    - name: Instalar o Zabbix Agent com parâmetros personalizados
+      win_package:
+        path: "C:\\zabbix_agent72.msi"
+        arguments: >
+          SERVER={{ servername }}
+          ListenPort={{ listen_port }}
+          ServerActive={{ servername }}
+        state: present
+
+    - name: Configurar o serviço Zabbix Agent para iniciar automaticamente
+      win_service:
+        name: 'Zabbix Agent'
+        start_mode: auto
+        state: started
+
+    - name: Verificar o status do serviço Zabbix Agent
+      win_shell: "Get-Service -Name 'Zabbix Agent'"
+      register: service_status
+
+    - name: Exibir o status do serviço Zabbix Agent
+      debug:
+        msg: "{{ service_status.stdout_lines }}"
+
+- name: Instalar o Zabbix Agent no Linux
+  when: not is_windows
+  block:
+    - name: Instalar o Zabbix Agent
+      dnf:
+        name: zabbix-agent
+        state: present
+
+    - name: Configurar o arquivo de configuração do Zabbix Agent (Server)
+      lineinfile:
+        path: /etc/zabbix/zabbix_agentd.conf
+        regexp: "^Server="
+        line: "Server={{ servername }}"
+      notify: Restart Zabbix Agent
+
+    - name: Configurar o arquivo de configuração do Zabbix Agent (ServerActive)
+      lineinfile:
+        path: /etc/zabbix/zabbix_agentd.conf
+        regexp: "^ServerActive="
+        line: "ServerActive={{ servername }}"
+      notify: Restart Zabbix Agent
+
+    - name: Configurar o arquivo de configuração do Zabbix Agent (ListenPort)
+      lineinfile:
+        path: /etc/zabbix/zabbix_agentd.conf
+        regexp: "^ListenPort="
+        line: "ListenPort={{ listen_port }}"
+      notify: Restart Zabbix Agent
+
+    - name: Iniciar e habilitar o Zabbix Agent
+      service:
+        name: zabbix-agent
+        state: started
+        enabled: yes
+
+    - name: Verificar o status do serviço Zabbix Agent
+      shell: "systemctl status zabbix-agent"
+      register: service_status
+
+    - name: Exibir o status do serviço Zabbix Agent
+      debug:
+        msg: "{{ service_status.stdout_lines }}"
+

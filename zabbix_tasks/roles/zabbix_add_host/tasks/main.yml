@@ -1,0 +1,29 @@
+- name: Depurar o valor de ansible_host, inventory_hostname e ansible_hostname
+  debug:
+    msg:
+      - "Inventory hostname: {{ inventory_hostname }}"
+      - "Ansible host: {{ ansible_host }}"
+      - "Ansible hostname: {{ ansible_hostname }}"
+
+
+
+- name: Adicionar host ao Zabbix (Linux ou Windows)
+  zabbix_add_host:
+    zabbix_url: "{{ zabbix_url }}"
+    api_token: "{{ api_token }}"
+    host_name: "{{ ansible_hostname }}"
+    ip_address: "{{ hostvars[inventory_hostname]['ansible_host'] | default(inventory_hostname) }}"
+    group_name: >-
+      {% if is_windows %}
+      {{ windows_host_group }}
+      {% else %}
+      {{ linux_host_group }}
+      {% endif %}
+    template_ids: >-
+      {% if is_windows %}
+      {{ windows_templates }}
+      {% else %}
+      {{ linux_templates  }}
+      {% endif %}
+  delegate_to: localhost
+

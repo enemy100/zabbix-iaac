@@ -1,0 +1,49 @@
+---
+# Install MySQL Server
+- name: Install MySQL Server
+  dnf:
+    name: mysql-server
+    state: present
+
+# Start and enable MySQL service
+- name: Start and enable MySQL service
+  systemd:
+    name: mysqld
+    state: started
+    enabled: yes
+
+# Create Zabbix database
+- name: Create Zabbix database
+  community.mysql.mysql_db:
+    name: zabbix
+    state: present
+    encoding: utf8mb4
+    collation: utf8mb4_bin
+
+# Create Zabbix database user
+- name: Create Zabbix database user
+  community.mysql.mysql_user:
+    name: zabbix
+    password: "{{ zabbix_db_password | default('zabbixpassword') }}"
+    priv: "zabbix.*:ALL"
+    host: localhost
+    state: present
+
+- name: Configure log_bin_trust_function_creators
+  community.mysql.mysql_variables:
+    variable: log_bin_trust_function_creators
+    value: 1
+
+- name: Import initial schema for Zabbix database
+  shell: >
+    zcat /usr/share/zabbix/sql-scripts/mysql/server.sql.gz |
+    mysql --default-character-set=utf8mb4 -uzabbix -p{{ zabbix_db_password | default('zabbixpassword') }} zabbix
+  args:
+    executable: /bin/bash
+  ignore_errors: yes
+
+- name: Disable log_bin_trust_function_creators
+  community.mysql.mysql_variables:
+    variable: log_bin_trust_function_creators
+    value: 0
+

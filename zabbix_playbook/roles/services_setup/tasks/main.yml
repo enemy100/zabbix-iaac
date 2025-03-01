@@ -1,0 +1,27 @@
+---
+- name: Restart and enable Zabbix services
+  systemd:
+    name: "{{ item }}"
+    state: restarted
+    enabled: yes
+  loop:
+    - zabbix-server
+    - zabbix-agent
+    - php-fpm
+    - httpd
+
+- name: Wait for Zabbix server to start
+  wait_for:
+    port: 10051
+    delay: 10
+    timeout: 60
+
+- name: Check Zabbix server status
+  command: systemctl status zabbix-server
+  register: zabbix_status
+  changed_when: false
+
+- name: Display Zabbix server status
+  debug:
+    msg: "{{ zabbix_status.stdout_lines }}"
+

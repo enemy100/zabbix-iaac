@@ -1,0 +1,18 @@
+# Zabbix Configuration
+zabbix_url: "http://your-zabbix-server/zabbix/api_jsonrpc.php"
+api_token: "your-api-token-here"
+
+# Host Group and Template Configuration
+linux_host_group: "Linux servers"
+linux_templates:
+  - 10001  # Template ID for Linux
+
+windows_host_group: "Windows servers"
+windows_templates: "10081"  # Template ID for Windows
+
+# Zabbix Agent Configuration
+servername: "your-zabbix-server-ip"
+listen_port: "10050"
+
+# Database Configuration
+zabbix_db_password: "secure-database-password" 

@@ -1,0 +1,8 @@
+---
+- name: Adicionar hosts ao Zabbix
+  hosts: all
+  gather_facts: yes
+  roles:
+    - role: agent_install
+    - role: zabbix_add_host
+

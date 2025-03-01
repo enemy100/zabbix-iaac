@@ -1,0 +1,45 @@
+---
+- name: Download and install Ansible collections on offline server
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    collection_dir: "/tmp/ansible_collections"
+    collections:
+      - name: "community.mysql"
+        url: "https://galaxy.ansible.com/download/community-mysql-3.7.2.tar.gz"
+      - name: "ansible.posix"
+        url: "https://galaxy.ansible.com/download/ansible-posix-1.5.4.tar.gz"
+
+  tasks:
+    - name: Create temporary directory for collections
+      file:
+        path: "{{ collection_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Download collections
+      get_url:
+        url: "{{ item.url }}"
+        dest: "{{ collection_dir }}/{{ item.name | replace('.', '-') }}.tar.gz"
+      loop: "{{ collections }}"
+
+    - name: Install extracted collections (offline mode)
+      command: "ansible-galaxy collection install {{ collection_dir }}/{{ item.name | replace('.', '-') }}.tar.gz -f"
+      loop: "{{ collections }}"
+      register: install_result
+      changed_when: "'Installing' in install_result.stdout"
+
+    - name: Clean up temporary directory
+      file:
+        path: "{{ collection_dir }}"
+        state: absent
+
+    - name: Display installed collections
+      command: ansible-galaxy collection list
+      register: collection_list
+
+    - name: Show installed collections
+      debug:
+        msg: "{{ collection_list.stdout_lines }}"
+

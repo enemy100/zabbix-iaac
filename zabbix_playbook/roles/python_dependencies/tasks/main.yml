@@ -1,0 +1,37 @@
+---
+
+- name: Install pip
+  dnf:
+    name: python3-pip
+    state: present
+
+- name: Create temporary directory for Python packages
+  file:
+    path: /tmp/python_packages
+    state: directory
+    mode: '0755'
+
+- name: Download Python packages
+  get_url:
+    url: "{{ item.url }}"
+    dest: "/tmp/{{ item.filename }}"
+  loop:
+    - { url: "https://files.pythonhosted.org/packages/c9/9b/0f0f0b8d66e9c0e3e2d5e1f5b4d0d8c8d8f5c9f7f8b7ca8b8e8e128f4fd3/setuptools-75.8.0-py3-none-any.whl", filename: "setuptools-75.8.0-py3-none-any.whl" }
+    - { url: "https://files.pythonhosted.org/packages/b8/8f/e1b1a5b75a0e9b2b1f5e7d2f2dd0a6c1e1d9a01e2a1b2c2d6c5a7e5d2f7/wheel-0.45.1-py3-none-any.whl", filename: "wheel-0.45.1-py3-none-any.whl" }
+    - { url: "https://files.pythonhosted.org/packages/e5/a7/5e5c7a21e6e11e8c91b0b5cc2a458c5bfcf73c6cd1a4a7a8c83c5b9f0e0/PyMySQL-1.1.1-py3-none-any.whl", filename: "PyMySQL-1.1.1-py3-none-any.whl" }
+
+- name: Install setuptools
+  command: "pip3 install /tmp/setuptools-75.8.0-py3-none-any.whl"
+  args:
+    creates: /usr/local/lib/python3.9/site-packages/setuptools
+
+- name: Install wheel
+  command: "pip3 install /tmp/wheel-0.45.1-py3-none-any.whl"
+  args:
+    creates: /usr/local/lib/python3.9/site-packages/wheel
+
+- name: Install PyMySQL
+  command: "pip3 install /tmp/PyMySQL-1.1.1-py3-none-any.whl"
+  args:
+    creates: /usr/local/lib/python3.9/site-packages/pymysql
+

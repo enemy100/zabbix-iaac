@@ -1,0 +1,47 @@
+---
+
+- name: Parar o firewalld
+  systemd:
+    name: firewalld
+    state: stopped
+    enabled: no
+
+- name: Instalar Zabbix e dependências
+  dnf:
+    name:
+      - zabbix-server-mysql
+      - zabbix-web-mysql
+      - zabbix-apache-conf
+      - zabbix-sql-scripts
+      - zabbix-selinux-policy
+      - zabbix-agent
+    state: present
+
+- name: Configurar DBHost no zabbix_server.conf
+  lineinfile:
+    path: /etc/zabbix/zabbix_server.conf
+    regexp: '^#?DBHost='
+    line: 'DBHost=localhost'
+    state: present
+
+- name: Configurar DBName no zabbix_server.conf
+  lineinfile:
+    path: /etc/zabbix/zabbix_server.conf
+    regexp: '^#?DBName='
+    line: 'DBName=zabbix'
+    state: present
+
+- name: Configurar DBUser no zabbix_server.conf
+  lineinfile:
+    path: /etc/zabbix/zabbix_server.conf
+    regexp: '^#?DBUser='
+    line: 'DBUser=zabbix'
+    state: present
+
+- name: Configurar DBPassword no zabbix_server.conf
+  lineinfile:
+    path: /etc/zabbix/zabbix_server.conf
+    regexp: '^#?DBPassword='
+    line: 'DBPassword=password'
+    state: present
+

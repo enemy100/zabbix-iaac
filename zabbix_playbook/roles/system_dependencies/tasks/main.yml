@@ -1,0 +1,67 @@
+---
+- name: Update DNF cache
+  command: dnf clean all
+  ignore_errors: yes
+
+- name: Update repository metadata
+  command: dnf makecache --setopt=module_platform_id=platform:el9
+  ignore_errors: yes
+
+# Install basic dependencies
+- name: Install basic system dependencies
+  dnf:
+    name:
+      - gcc
+      - python3-devel
+      - pkg-config
+      - zlib-devel
+      - openssl-devel
+      - rocky-logos-httpd
+      - libxml2-devel
+      - libxslt-devel
+      - net-snmp-devel
+      - OpenIPMI-devel
+      - curl-devel
+      - unixODBC-devel
+      - openldap-devel
+      - java-11-openjdk-devel
+      - pcre-devel
+      - libevent-devel
+    state: present
+
+- name: Create temporary directory for Ansible collections
+  file:
+    path: /tmp/ansible_collections
+    state: directory
+    mode: '0755'
+
+- name: Download Ansible collections
+  get_url:
+    url: "{{ item.url }}"
+    dest: "/tmp/ansible_collections/{{ item.name | replace('.', '-') }}.tar.gz"
+  loop:
+    - { name: "community.mysql", url: "https://galaxy.ansible.com/download/community-mysql-3.7.2.tar.gz" }
+    - { name: "ansible.posix", url: "https://galaxy.ansible.com/download/ansible-posix-1.5.4.tar.gz" }
+
+- name: Install extracted collections
+  command: "ansible-galaxy collection install /tmp/ansible_collections/{{ item.name | replace('.', '-') }}.tar.gz -f"
+  loop:
+    - { name: "community.mysql" }
+    - { name: "ansible.posix" }
+  register: install_result
+  changed_when: "'Installing' in install_result.stdout"
+
+- name: Clean up temporary directory
+  file:
+    path: /tmp/ansible_collections
+    state: absent
+
+- name: Display installed collections
+  command: ansible-galaxy collection list
+  register: collection_list
+
+- name: Show installed collections
+  debug:
+    msg: "{{ collection_list.stdout_lines }}"
+
+

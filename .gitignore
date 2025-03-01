@@ -1,0 +1,24 @@
+# Ignore sensitive files
+**/group_vars/all.yml
+**/inventory/hosts
+
+# Python cache files
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Ansible retry files
+*.retry
+
+# Log files
+*.log
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo 

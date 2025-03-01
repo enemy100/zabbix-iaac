@@ -1,0 +1,108 @@
+# Install setuptools and wheel
+- name: Install setuptools
+  command: "pip3 install /tmp/setuptools-75.8.0-py3-none-any.whl"
+
+- name: Install wheel
+  command: "pip3 install /tmp/wheel-0.45.1-py3-none-any.whl"
+
+# Install PyMySQL
+- name: Install PyMySQL
+  command: "pip3 install /tmp/PyMySQL-1.1.1-py3-none-any.whl"
+
+# Install fping manually
+- name: Install fping manually
+  command: "rpm -Uvh /tmp/fping-5.0-4.el9.x86_64.rpm"
+  args:
+    creates: /usr/sbin/fping
+
+    # Update DNF cache
+    - name: Update DNF cache
+      command: dnf clean all
+      ignore_errors: yes
+
+    - name: Update repository metadata
+      command: dnf makecache --setopt=module_platform_id=platform:el9
+      ignore_errors: yes
+
+    # Install basic dependencies
+    - name: Install basic system dependencies
+      dnf:
+        name:
+          - gcc
+          - python3-devel
+          - pkg-config
+          - zlib-devel
+          - openssl-devel
+          - rocky-logos-httpd
+        state: present
+
+    # Install additional dependencies and Zabbix packages via DNF
+    - name: Install additional dependencies and Zabbix packages
+      dnf:
+        name:
+          - OpenIPMI
+          - OpenIPMI-libs
+          - apr
+          - apr-util
+          - apr-util-bdb
+          - apr-util-openssl
+          - httpd
+          - httpd-core
+          - httpd-filesystem
+          - httpd-tools
+          - mod_http2
+          - mod_lua
+          - net-snmp-libs
+          - php-common
+          - php-mysqlnd
+          - php-pdo
+          - unixODBC
+          - zabbix-server-mysql
+          - zabbix-web-mysql
+          - zabbix-apache-conf
+          - zabbix-sql-scripts
+          - zabbix-agent
+          - fping
+        state: present
+
+    # Database configuration
+    - name: Create Zabbix database
+      community.mysql.mysql_db:
+        name: zabbix
+        state: present
+        encoding: utf8mb4
+        collation: utf8mb4_bin
+
+    - name: Create Zabbix database user
+      community.mysql.mysql_user:
+        name: zabbix
+        password: "{{ zabbix_db_password | default('zabbixpassword') }}"
+        priv: "zabbix.*:ALL"
+        host: localhost
+        state: present
+
+    - name: Configure log_bin_trust_function_creators
+      community.mysql.mysql_variables:
+        variables:
+          log_bin_trust_function_creators: 1
+
+    - name: Import initial schema for Zabbix database
+      command: zcat /usr/share/zabbix/sql-scripts/mysql/server.sql.gz | mysql --default-character-set=utf8mb4 -uzabbix -p{{ zabbix_db_password | default('zabbixpassword') }} zabbix
+
+    - name: Disable log_bin_trust_function_creators
+      community.mysql.mysql_variables:
+        variables:
+          log_bin_trust_function_creators: 0
+
+    # Start and enable Zabbix services
+    - name: Restart and enable Zabbix services
+      systemd:
+        name: "{{ item }}"
+        state: restarted
+        enabled: yes
+      loop:
+        - zabbix-server
+        - zabbix-agent
+        - php-fpm
+        - httpd
+

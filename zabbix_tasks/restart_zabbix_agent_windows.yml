@@ -1,0 +1,20 @@
+- name: Reiniciar Zabbix Agent no Windows
+  hosts: all
+  gather_facts: no
+  tasks:
+    - name: Verificar conectividade com o host
+      win_ping:
+      register: ping_result
+      ignore_errors: yes
+
+    - name: Falhar caso o host não responda ao ping
+      fail:
+        msg: "O host não está acessível, abortando."
+      when: ping_result.failed
+
+    - name: Reiniciar o serviço do Zabbix Agent
+      win_service:
+        name: "Zabbix Agent"
+        state: restarted
+      when: not ping_result.failed
+

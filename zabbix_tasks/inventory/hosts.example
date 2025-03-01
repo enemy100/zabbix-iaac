@@ -1,0 +1,23 @@
+[zabbix_server]
+localhost ansible_connection=local ansible_httpapi_use_ssl=no ansible_httpapi_validate_certs=no
+
+[linux_hosts]
+linux-server1 ansible_host=192.168.1.101
+linux-server2 ansible_host=192.168.1.102
+
+[windows_hosts]
+win-server1 ansible_host=192.168.1.201
+win-server2 ansible_host=192.168.1.202
+
+[all:vars]
+# For Windows hosts
+ansible_user=DOMAIN\username
+ansible_password=your-secure-password
+ansible_connection=winrm
+ansible_winrm_transport=ntlm
+ansible_port=5985
+ansible_winrm_server_cert_validation=ignore
+
+# For Linux hosts
+# ansible_user=your-linux-username
+# ansible_ssh_private_key_file=/path/to/your/private/key 

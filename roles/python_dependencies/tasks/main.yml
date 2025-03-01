@@ -1,0 +1,32 @@
+---
+
+- name: Instalar o pip
+  dnf:
+    name:
+      - pip
+    state: present
+
+- name: Baixar os arquivos necessários para o pip
+  get_url:
+    url: "http://10.196.182.20/repo/zabbix/{{ item }}"
+    dest: "/tmp/{{ item }}"
+  with_items:
+    - setuptools-75.8.0-py3-none-any.whl
+    - wheel-0.45.1-py3-none-any.whl
+    - PyMySQL-1.1.1-py3-none-any.whl
+
+- name: Instalar setuptools
+  command: "pip3 install /tmp/setuptools-75.8.0-py3-none-any.whl"
+  args:
+    creates: "/usr/local/lib/python3.9/site-packages/setuptools"
+
+- name: Instalar wheel
+  command: "pip3 install /tmp/wheel-0.45.1-py3-none-any.whl"
+  args:
+    creates: "/usr/local/lib/python3.9/site-packages/wheel"
+
+- name: Instalar PyMySQL
+  command: "pip3 install /tmp/PyMySQL-1.1.1-py3-none-any.whl"
+  args:
+    creates: "/usr/local/lib/python3.9/site-packages/PyMySQL"
+
