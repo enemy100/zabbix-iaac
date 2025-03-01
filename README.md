@@ -1,4 +1,4 @@
-# Zabbix Ansible Playbook
+# zabbix-iaac
 
 This repository contains an Ansible playbook for automating the installation and configuration of Zabbix monitoring system on a local server.
 
@@ -67,10 +67,19 @@ You can customize the installation by modifying the variables in the respective 
 - Ansible 2.9 or higher
 - Target system: Linux (tested on CentOS/RHEL and Ubuntu)
 
+## Handling Sensitive Information
+
+When working with this repository, please follow these security practices:
+
+1. **Never commit sensitive information**: Passwords, tokens, or IP addresses should not be committed to the repository.
+2. **Use example configuration files**: Create example files (like `hosts.example` and `all.yml.example`) that show the structure without real credentials.
+3. **Use Ansible Vault**: Encrypt sensitive variables using Ansible Vault.
+4. **Add sensitive files to .gitignore**: Make sure sensitive files are listed in the `.gitignore` file.
+
 ## License
 
 [Specify your license here]
 
 ## Author
 
-[Your name or organization]
+Robson
